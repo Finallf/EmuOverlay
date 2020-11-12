@@ -46,6 +46,7 @@ if FileExist("Emus.ini"){
 }
 
 
+
 Global teste := IniRead("config.ini")
 
 MsgBox teste
