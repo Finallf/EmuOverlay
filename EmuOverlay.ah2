@@ -23,30 +23,6 @@ Global Emus := ""
 SetTimer "OverShow", 100
 SetTimer "CheckWin", 1000
 
-if FileExist("Emus.ini"){
-	Emus := IniRead("emus.ini", "Emus")
-} else {
-	IniWrite "
-	(
-	NES
-	SNES
-	N64
-	GC
-	Wii
-	WiiU
-	Switch
-	GB
-	VB
-	GBC
-	GBA
-	DS
-	DSi
-	3DS
-	)", "emus.ini", "Emus"
-}
-
-
-
 Global teste := IniRead("config.ini")
 
 MsgBox teste
