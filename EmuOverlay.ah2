@@ -18,7 +18,6 @@ Global ExeName := "snes9x-x64.exe"
 
 Global FirTime := 0
 Global AhkName := "ahk_exe" ExeName
-Global Emus := ""
 
 SetTimer "OverShow", 100
 SetTimer "CheckWin", 1000
