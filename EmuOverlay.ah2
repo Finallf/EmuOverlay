@@ -12,7 +12,7 @@ Global ExeName := ""
 Global ExtTime := 0
 Global chckimg := 0
 Global OldName := ""
-Global FirTime := 0
+Global FirTime := 1
 Global CtrName := ""
 
 MyIcon := "EmuOverlay.ico"
