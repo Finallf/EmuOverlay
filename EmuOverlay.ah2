@@ -1,74 +1,86 @@
 #SingleInstance force
 #Warn
 #Persistent
-#InstallMouseHook
-
 SetTitleMatchMode 3
-SendMode "Input"
-CoordMode "Mouse", "Client"
 SetWorkingDir A_ScriptDir
 Thread "interrupt", 0
-
-MyIcon := "EmuOverlay.ico"
-If FileExist(MyIcon)
-	TraySetIcon(MyIcon)
-
-Global Imagens := "snes.png"
-Global ExeName := "snes9x-x64.exe"
-
-Global FirTime := 0
-Global AhkName := "ahk_exe" ExeName
-
-SetTimer "EmuExist", -2000
-SetTimer "OverShow", 100
-SetTimer "CheckWin", 1000
-
-Global teste := IniRead("config.ini")
-
-MsgBox teste
-
-
-
 #Include "Readwriteini.ahk"
 
-if (WinExist("ahk_exe" IniRead("config.ini", "SNES", "ExeName"))){
-	ExeName := IniRead("config.ini", "SNES", "ExeName")
-	Imagens := IniRead("config.ini", "SNES", "Imagens")
-	AhkName := "ahk_exe" ExeName
-	MsgBox "ExeName e Imagens é: " ExeName ", " Imagens " e " AhkName
-	
-} else If (WinExist("ahk_exe" IniRead("config.ini", "GC", "ExeName"))){
-	ExeName := IniRead("config.ini", "GC", "ExeName")
-	Imagens := IniRead("config.ini", "GC", "Imagens")
-	AhkName := "ahk_exe" ExeName
-	MsgBox "ExeName e Imagens é: " ExeName ", " Imagens " e " AhkName
-	
-} else {
-	MsgBox "ExeName, Imagens e AhkName são: " ExeName ", " Imagens " e " AhkName " Valores Originais "
+Global Overlay := ""
+Global Imagens := ""
+Global ExeName := ""
+Global ExtTime := 0
+Global chckimg := 0
+Global OldName := ""
+Global FirTime := 0
+Global CtrName := ""
+
+MyIcon := "EmuOverlay.ico"
+If FileExist(MyIcon) {
+	TraySetIcon(MyIcon)
 }
 
-Global Overlay := Gui.New()
-Overlay.Opt("+LastFound")
-Overlay.MarginX := 0
-Overlay.MarginY := 0
-Overlay.Add("Picture", "h-1", Imagens)
-Overlay.BackColor := "00FF00"
-WinsetTranscolor "00FF00"
-Overlay.Opt("+AlwaysOnTop -Caption -Border -Sysmenu +ToolWindow +E0x20")
+SetTimer "OverShow", 50
 
+Global DebugGui := Gui.New()
+DebugGui.Add("Edit","w320 r3 ReadOnly vDebugView","")
+DebugGui.Show("NoActivate")
+
+GuiOShow() {
+	Overlay := Gui.New()
+	Overlay.Opt("+LastFound")
+	Overlay.MarginX := 0
+	Overlay.MarginY := 0
+	Overlay.Add("Picture", "h-1", "imgs\" Imagens "")
+	Overlay.BackColor := "00FF00"
+	WinsetTranscolor "00FF00"
+	Overlay.Opt("+AlwaysOnTop -Border -Caption -Sysmenu +ToolWindow +E0x20")
+	Overlay.Show("NA")
+}
 OverShow() {
-	if WinActive(AhkName) {
-		WinGetClientPos ,,W,H,AhkName
-		if (W >= A_ScreenWidth ) && (H >= A_ScreenHeight){
-			Overlay.Show("NA")
+	For v In StrSplit(IniRead("config.ini"), "`n") {
+		if WinExist("ahk_exe" IniRead("config.ini", v, "ExeName", "")) {
 			FirTime := 1
-		} else {
-			Overlay.Hide()
+			CtrName := IniRead("config.ini", v, "ExeName", "")
+			if WinActive("ahk_exe" IniRead("config.ini", v, "ExeName", "")) {
+				ExeName := IniRead("config.ini", v, "ExeName", "")
+				Imagens := IniRead("config.ini", v, "Imagens", "")
+			} else {
+				ExeName := ""
+				Imagens := ""
+			}
 		}
 	}
-}
 
-CheckWin() {
-	if ((!WinExist(AhkName) && FirTime = 1) or (!WinExist(AhkName) && !WinWait(AhkName,, 5)))
+	DebugGui['DebugView'].Value := FirTime " " ExeName " " CtrName " " ExtTime
+
+	if ExtTime <= 5 and ExeName = "" and FirTime = 0 {
+		Sleep 1000
+		ExtTime++
+		Return
+	}
+
+	AhkExeN := "ahk_exe" ExeName
+	if WinActive(AhkExeN) {
+		WinGetClientPos ,,W,H,AhkExeN
+		DetectHiddenText 0
+		TextLen := WinGetText()
+		if W >= A_ScreenWidth && H >= A_ScreenHeight {
+			if chckimg = 0 And StrLen(TextLen) = 0 {
+				GuiOShow()
+				chckimg := 1
+				OldName := ExeName
+			} else if chckimg = 1 And StrLen(TextLen) > 0 or chckimg = 1 And OldName != ExeName {
+				Overlay.Destroy()
+				chckimg := 0
+				OldName := ExeName
+			}
+		} else if chckimg = 1 {
+			Overlay.Destroy()
+			chckimg := 0
+		}
+	}
+	if !WinExist(AhkExeN) And FirTime = 0 or !WinExist(AhkExeN) And ExtTime > 5 {
 		ExitApp
+	}
 }
